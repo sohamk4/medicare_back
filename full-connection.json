@@ -1,0 +1,165 @@
+{
+  "name": "HealthcareNetwork",
+  "version": "1.0.0",
+  "client": {
+    "organization": "PatientOrg",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        }
+      }
+    }
+  },
+  "channels": {
+    "discovery-channel": {
+      "orderers": [
+        "orderer.example.com"
+      ],
+      "peers": {
+        "peer0.platform.example.com": {
+          "endorsingPeer": true,
+          "chaincodeQuery": true,
+          "ledgerQuery": true,
+          "eventSource": true
+        },
+        "peer0.patients.example.com": {
+          "endorsingPeer": true,
+          "chaincodeQuery": true,
+          "ledgerQuery": true,
+          "eventSource": true
+        },
+        "peer0.provider.example.com": {
+          "endorsingPeer": true,
+          "chaincodeQuery": true,
+          "ledgerQuery": true,
+          "eventSource": true
+        },
+        "peer0.citygeneral.example.com": {
+          "endorsingPeer": true,
+          "chaincodeQuery": true,
+          "ledgerQuery": true,
+          "eventSource": true
+        }
+      }
+    }
+  },
+  "organizations": {
+    "PlatformOrg": {
+      "mspid": "PlatformOrgMSP",
+      "peers": [
+        "peer0.platform.example.com"
+      ]
+    },
+    "PatientOrg": {
+      "mspid": "PatientOrgMSP",
+      "peers": [
+        "peer0.patients.example.com"
+      ]
+    },
+    "ProviderOrg": {
+      "mspid": "HealthcareProviderOrgMSP",
+      "peers": [
+        "peer0.provider.example.com"
+      ]
+    },
+    "citygeneralMSP": {
+      "mspid": "citygeneralMSP",
+      "peers": [
+        "peer0.citygeneral.example.com"
+      ]
+    }
+  },
+  "orderers": {
+    "orderer.example.com": {
+      "url": "grpcs://20.198.76.230:7050",
+      "tlsCACerts": {
+        "pem": "-----BEGIN CERTIFICATE-----\nMIICcDCCAhagAwIBAgIUdnt3GEmYb80qJBZGvpo9BL5VTygwCgYIKoZIzj0EAwIw\ngYsxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T\nYW4gRnJhbmNpc2NvMRwwGgYDVQQKExNvcmRlcmVyLmV4YW1wbGUuY29tMRAwDgYD\nVQQLEwdPcmRlcmVyMR8wHQYDVQQDExZjYS5vcmRlcmVyLmV4YW1wbGUuY29tMB4X\nDTI2MDQwMTE5NDgwMFoXDTQxMDMyODE5NDgwMFowgYsxCzAJBgNVBAYTAlVTMRMw\nEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMRwwGgYD\nVQQKExNvcmRlcmVyLmV4YW1wbGUuY29tMRAwDgYDVQQLEwdPcmRlcmVyMR8wHQYD\nVQQDExZjYS5vcmRlcmVyLmV4YW1wbGUuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0D\nAQcDQgAEQR2QSn7HPIf9VEWcPtAySIp2WUPMyEU2RM8alwbei8skChFFGHz0XYip\nj8DajP1l83qX+XhbFNTqUKXy3/xm9qNWMFQwDgYDVR0PAQH/BAQDAgEGMBIGA1Ud\nEwEB/wQIMAYBAf8CAQEwHQYDVR0OBBYEFG59ntOQs5d6BheE55gZJDwpx2BxMA8G\nA1UdEQQIMAaHBAoKAAkwCgYIKoZIzj0EAwIDSAAwRQIhAMHIGpQKo/Uf9ozruCsG\nDUYSTX+ZZ9/iDAnnB44ZsPgyAiA0Wr93EXgtO3T7i/858yDn4IVstBI7531hzzXN\nhZpKuA==\n-----END CERTIFICATE-----\n"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer.example.com"
+      }
+    }
+  },
+  "peers": {
+    "peer0.platform.example.com": {
+      "url": "grpcs://20.198.76.230:7051",
+      "tlsCACerts": {
+        "pem": "-----BEGIN CERTIFICATE-----\nMIICdTCCAhygAwIBAgIUINSGqthnl3CAw89KFfqCbO8sZmQwCgYIKoZIzj0EAwIw\ngY4xCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T\nYW4gRnJhbmNpc2NvMR0wGwYDVQQKExRwbGF0Zm9ybS5leGFtcGxlLmNvbTERMA8G\nA1UECxMIUGxhdGZvcm0xIDAeBgNVBAMTF2NhLnBsYXRmb3JtLmV4YW1wbGUuY29t\nMB4XDTI2MDQwMTE5NDgwMFoXDTQxMDMyODE5NDgwMFowgY4xCzAJBgNVBAYTAlVT\nMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMR0w\nGwYDVQQKExRwbGF0Zm9ybS5leGFtcGxlLmNvbTERMA8GA1UECxMIUGxhdGZvcm0x\nIDAeBgNVBAMTF2NhLnBsYXRmb3JtLmV4YW1wbGUuY29tMFkwEwYHKoZIzj0CAQYI\nKoZIzj0DAQcDQgAEQmqaHumA9Fd6LQSvhIsjGibNXMCAbvQzM5K40Jiaq3JUNij/\n0tSvWOb8z7bLyMmE5HnA1QGq8Ku8Cr/srAs5mKNWMFQwDgYDVR0PAQH/BAQDAgEG\nMBIGA1UdEwEB/wQIMAYBAf8CAQEwHQYDVR0OBBYEFHsi5o563KzKFXySob5XbbDB\nSdm3MA8GA1UdEQQIMAaHBAoKAAYwCgYIKoZIzj0EAwIDRwAwRAIgZUngQa0gdXnF\nec4VcB0sASYk10A8Io8yrm+/gCBC6jkCID9TWifYl/du8+RbVYllQoadxII7wSoF\njakQn2+UYJYl\n-----END CERTIFICATE-----\n"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.platform.example.com"
+      }
+    },
+    "peer0.patients.example.com": {
+      "url": "grpcs://20.198.76.230:9051",
+      "tlsCACerts": {
+        "pem": "-----BEGIN CERTIFICATE-----\nMIICdjCCAhygAwIBAgIUQc9yrI7m8V+InqJREj+vA3ONc1owCgYIKoZIzj0EAwIw\ngY4xCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T\nYW4gRnJhbmNpc2NvMR0wGwYDVQQKExRwYXRpZW50cy5leGFtcGxlLmNvbTERMA8G\nA1UECxMIUGF0aWVudHMxIDAeBgNVBAMTF2NhLnBhdGllbnRzLmV4YW1wbGUuY29t\nMB4XDTI2MDQwMTE5NDgwMFoXDTQxMDMyODE5NDgwMFowgY4xCzAJBgNVBAYTAlVT\nMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMR0w\nGwYDVQQKExRwYXRpZW50cy5leGFtcGxlLmNvbTERMA8GA1UECxMIUGF0aWVudHMx\nIDAeBgNVBAMTF2NhLnBhdGllbnRzLmV4YW1wbGUuY29tMFkwEwYHKoZIzj0CAQYI\nKoZIzj0DAQcDQgAEGtgmsuP6IGP37ui/9pJMUmGCK2gi9fVJMZbJ2RtRvbPGrAYd\n+Q2jAqIgNSMqFgpYFWzulJnWK+0ZkfnArd4ks6NWMFQwDgYDVR0PAQH/BAQDAgEG\nMBIGA1UdEwEB/wQIMAYBAf8CAQEwHQYDVR0OBBYEFDMAe84vZx4FLCt/dB2fn63G\nY03wMA8GA1UdEQQIMAaHBAoKAAcwCgYIKoZIzj0EAwIDSAAwRQIhALgFxEIPMlSl\nOmZA+jXT00K4l7fOal0yVGaDyhDM6t5NAiA2l9aUE6pPvVbfQYIIfhGrtcykzmw6\n3RY6ZyJCnwKT7A==\n-----END CERTIFICATE-----\n"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.patients.example.com"
+      }
+    },
+    "peer0.provider.example.com": {
+      "url": "grpcs://20.198.76.230:10051",
+      "tlsCACerts": {
+        "pem": "-----BEGIN CERTIFICATE-----\nMIICijCCAjCgAwIBAgIUWHJ3jhWO9OjecXEqwBSnyq1ci8cwCgYIKoZIzj0EAwIw\ngZgxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T\nYW4gRnJhbmNpc2NvMR0wGwYDVQQKExRwcm92aWRlci5leGFtcGxlLmNvbTEbMBkG\nA1UECxMSSGVhbHRoY2FyZVByb3ZpZGVyMSAwHgYDVQQDExdjYS5wcm92aWRlci5l\neGFtcGxlLmNvbTAeFw0yNjA0MDExOTQ4MDBaFw00MTAzMjgxOTQ4MDBaMIGYMQsw\nCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy\nYW5jaXNjbzEdMBsGA1UEChMUcHJvdmlkZXIuZXhhbXBsZS5jb20xGzAZBgNVBAsT\nEkhlYWx0aGNhcmVQcm92aWRlcjEgMB4GA1UEAxMXY2EucHJvdmlkZXIuZXhhbXBs\nZS5jb20wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASkk+zIyYUoObSSxlDxIMhT\nUatOV3D7zgMjQ8rRiROEXMHhKaC0zLXekrvO/Drox3JferBp3BotGaUllrAzp/Al\no1YwVDAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIBAjAdBgNVHQ4E\nFgQUz2uX5lA+yc30TsaqaHa6HKg2ohkwDwYDVR0RBAgwBocECgoACDAKBggqhkjO\nPQQDAgNIADBFAiEA3j6BfHAyI3+lKlWCAchYT87A5kf5Q69Wl2Y2jeY6ehACID7J\nCdj3RnOl/pIra6/nyPd5U1uma6Bk1FXiGPjDbgnP\n-----END CERTIFICATE-----\n"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.provider.example.com"
+      }
+    },
+    "peer0.citygeneral.example.com": {
+      "url": "grpcs://20.198.76.230:12001",
+      "tlsCACerts": {
+        "pem": "-----BEGIN CERTIFICATE-----\nMIICiDCCAi6gAwIBAgIUEch4x+3PTpRDdhvaDUQIfZSDZOEwCgYIKoZIzj0EAwIw\ngZcxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T\nYW4gRnJhbmNpc2NvMSAwHgYDVQQKExdjaXR5Z2VuZXJhbC5leGFtcGxlLmNvbTEU\nMBIGA1UECxMLY2l0eWdlbmVyYWwxIzAhBgNVBAMTGmNhLmNpdHlnZW5lcmFsLmV4\nYW1wbGUuY29tMB4XDTI2MDQwMTE5NTMwMFoXDTQxMDMyODE5NTMwMFowgZcxCzAJ\nBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4gRnJh\nbmNpc2NvMSAwHgYDVQQKExdjaXR5Z2VuZXJhbC5leGFtcGxlLmNvbTEUMBIGA1UE\nCxMLY2l0eWdlbmVyYWwxIzAhBgNVBAMTGmNhLmNpdHlnZW5lcmFsLmV4YW1wbGUu\nY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE0FH95/fnD51dW8gEUaV6ylTA\nr2IclWzYY3y/vNEM+ty0CFjKCVUe6VFaH5rRJ2soQOpYPw1oNYencvZeOSHeD6NW\nMFQwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQEwHQYDVR0OBBYE\nFMYFyDOJvqxAn9J6L6usfMOhkLqkMA8GA1UdEQQIMAaHBAoKAAowCgYIKoZIzj0E\nAwIDSAAwRQIhAKn9rYXrIYtKhWYwLmTFm6n0FSL6tf2PjmXeroQW0iLyAiBd2828\nszAo28+7KxEty3rh7tcAjAJ6i6B2aP9rYrEK9g==\n-----END CERTIFICATE-----"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.citygeneral.example.com",
+        "request-timeout": 30000
+      }
+    }
+  },
+  "certificateAuthorities": {
+    "ca.platform.example.com": {
+      "url": "https://20.198.76.230:8054",
+      "caName": "ca-platform",
+      "tlsCACerts": {
+        "pem": "-----BEGIN CERTIFICATE-----\nMIICdTCCAhygAwIBAgIUINSGqthnl3CAw89KFfqCbO8sZmQwCgYIKoZIzj0EAwIw\ngY4xCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T\nYW4gRnJhbmNpc2NvMR0wGwYDVQQKExRwbGF0Zm9ybS5leGFtcGxlLmNvbTERMA8G\nA1UECxMIUGxhdGZvcm0xIDAeBgNVBAMTF2NhLnBsYXRmb3JtLmV4YW1wbGUuY29t\nMB4XDTI2MDQwMTE5NDgwMFoXDTQxMDMyODE5NDgwMFowgY4xCzAJBgNVBAYTAlVT\nMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMR0w\nGwYDVQQKExRwbGF0Zm9ybS5leGFtcGxlLmNvbTERMA8GA1UECxMIUGxhdGZvcm0x\nIDAeBgNVBAMTF2NhLnBsYXRmb3JtLmV4YW1wbGUuY29tMFkwEwYHKoZIzj0CAQYI\nKoZIzj0DAQcDQgAEQmqaHumA9Fd6LQSvhIsjGibNXMCAbvQzM5K40Jiaq3JUNij/\n0tSvWOb8z7bLyMmE5HnA1QGq8Ku8Cr/srAs5mKNWMFQwDgYDVR0PAQH/BAQDAgEG\nMBIGA1UdEwEB/wQIMAYBAf8CAQEwHQYDVR0OBBYEFHsi5o563KzKFXySob5XbbDB\nSdm3MA8GA1UdEQQIMAaHBAoKAAYwCgYIKoZIzj0EAwIDRwAwRAIgZUngQa0gdXnF\nec4VcB0sASYk10A8Io8yrm+/gCBC6jkCID9TWifYl/du8+RbVYllQoadxII7wSoF\njakQn2+UYJYl\n-----END CERTIFICATE-----\n"
+      },
+      "httpOptions": {
+        "verify": false
+      }
+    },
+    "ca.patients.example.com": {
+      "url": "https://20.198.76.230:9054",
+      "caName": "ca-patients",
+      "tlsCACerts": {
+        "pem": "-----BEGIN CERTIFICATE-----\nMIICdjCCAhygAwIBAgIUQc9yrI7m8V+InqJREj+vA3ONc1owCgYIKoZIzj0EAwIw\ngY4xCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T\nYW4gRnJhbmNpc2NvMR0wGwYDVQQKExRwYXRpZW50cy5leGFtcGxlLmNvbTERMA8G\nA1UECxMIUGF0aWVudHMxIDAeBgNVBAMTF2NhLnBhdGllbnRzLmV4YW1wbGUuY29t\nMB4XDTI2MDQwMTE5NDgwMFoXDTQxMDMyODE5NDgwMFowgY4xCzAJBgNVBAYTAlVT\nMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMR0w\nGwYDVQQKExRwYXRpZW50cy5leGFtcGxlLmNvbTERMA8GA1UECxMIUGF0aWVudHMx\nIDAeBgNVBAMTF2NhLnBhdGllbnRzLmV4YW1wbGUuY29tMFkwEwYHKoZIzj0CAQYI\nKoZIzj0DAQcDQgAEGtgmsuP6IGP37ui/9pJMUmGCK2gi9fVJMZbJ2RtRvbPGrAYd\n+Q2jAqIgNSMqFgpYFWzulJnWK+0ZkfnArd4ks6NWMFQwDgYDVR0PAQH/BAQDAgEG\nMBIGA1UdEwEB/wQIMAYBAf8CAQEwHQYDVR0OBBYEFDMAe84vZx4FLCt/dB2fn63G\nY03wMA8GA1UdEQQIMAaHBAoKAAcwCgYIKoZIzj0EAwIDSAAwRQIhALgFxEIPMlSl\nOmZA+jXT00K4l7fOal0yVGaDyhDM6t5NAiA2l9aUE6pPvVbfQYIIfhGrtcykzmw6\n3RY6ZyJCnwKT7A==\n-----END CERTIFICATE-----\n"
+      },
+      "httpOptions": {
+        "verify": false
+      }
+    },
+    "ca.provider.example.com": {
+      "url": "https://20.198.76.230:10054",
+      "caName": "ca-provider",
+      "tlsCACerts": {
+        "pem": "-----BEGIN CERTIFICATE-----\nMIICijCCAjCgAwIBAgIUWHJ3jhWO9OjecXEqwBSnyq1ci8cwCgYIKoZIzj0EAwIw\ngZgxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T\nYW4gRnJhbmNpc2NvMR0wGwYDVQQKExRwcm92aWRlci5leGFtcGxlLmNvbTEbMBkG\nA1UECxMSSGVhbHRoY2FyZVByb3ZpZGVyMSAwHgYDVQQDExdjYS5wcm92aWRlci5l\neGFtcGxlLmNvbTAeFw0yNjA0MDExOTQ4MDBaFw00MTAzMjgxOTQ4MDBaMIGYMQsw\nCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy\nYW5jaXNjbzEdMBsGA1UEChMUcHJvdmlkZXIuZXhhbXBsZS5jb20xGzAZBgNVBAsT\nEkhlYWx0aGNhcmVQcm92aWRlcjEgMB4GA1UEAxMXY2EucHJvdmlkZXIuZXhhbXBs\nZS5jb20wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASkk+zIyYUoObSSxlDxIMhT\nUatOV3D7zgMjQ8rRiROEXMHhKaC0zLXekrvO/Drox3JferBp3BotGaUllrAzp/Al\no1YwVDAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIBAjAdBgNVHQ4E\nFgQUz2uX5lA+yc30TsaqaHa6HKg2ohkwDwYDVR0RBAgwBocECgoACDAKBggqhkjO\nPQQDAgNIADBFAiEA3j6BfHAyI3+lKlWCAchYT87A5kf5Q69Wl2Y2jeY6ehACID7J\nCdj3RnOl/pIra6/nyPd5U1uma6Bk1FXiGPjDbgnP\n-----END CERTIFICATE-----\n"
+      },
+      "httpOptions": {
+        "verify": false
+      }
+    },
+    "ca-citygeneral": {
+      "url": "https://20.198.76.230:12054",
+      "caName": "ca-citygeneral",
+      "tlsCACerts": {
+        "pem": "-----BEGIN CERTIFICATE-----\nMIICiDCCAi6gAwIBAgIUEch4x+3PTpRDdhvaDUQIfZSDZOEwCgYIKoZIzj0EAwIw\ngZcxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T\nYW4gRnJhbmNpc2NvMSAwHgYDVQQKExdjaXR5Z2VuZXJhbC5leGFtcGxlLmNvbTEU\nMBIGA1UECxMLY2l0eWdlbmVyYWwxIzAhBgNVBAMTGmNhLmNpdHlnZW5lcmFsLmV4\nYW1wbGUuY29tMB4XDTI2MDQwMTE5NTMwMFoXDTQxMDMyODE5NTMwMFowgZcxCzAJ\nBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4gRnJh\nbmNpc2NvMSAwHgYDVQQKExdjaXR5Z2VuZXJhbC5leGFtcGxlLmNvbTEUMBIGA1UE\nCxMLY2l0eWdlbmVyYWwxIzAhBgNVBAMTGmNhLmNpdHlnZW5lcmFsLmV4YW1wbGUu\nY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE0FH95/fnD51dW8gEUaV6ylTA\nr2IclWzYY3y/vNEM+ty0CFjKCVUe6VFaH5rRJ2soQOpYPw1oNYencvZeOSHeD6NW\nMFQwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQEwHQYDVR0OBBYE\nFMYFyDOJvqxAn9J6L6usfMOhkLqkMA8GA1UdEQQIMAaHBAoKAAowCgYIKoZIzj0E\nAwIDSAAwRQIhAKn9rYXrIYtKhWYwLmTFm6n0FSL6tf2PjmXeroQW0iLyAiBd2828\nszAo28+7KxEty3rh7tcAjAJ6i6B2aP9rYrEK9g==\n-----END CERTIFICATE-----"
+      },
+      "httpOptions": {
+        "verify": false
+      }
+    }
+  }
+}
