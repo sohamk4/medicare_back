@@ -19,8 +19,7 @@ const patientSchema = new mongoose.Schema({
   },
   patient_id: { 
     type: String, 
-    required: false, 
-    unique: true,
+    required: false,
     trim: true,
   },
   name: { 
@@ -123,7 +122,6 @@ const patientSchema = new mongoose.Schema({
 
 // Indexes
 patientSchema.index({ username: 1 });
-patientSchema.index({ patient_id: 1 });
 patientSchema.index({ email: 1 });
 patientSchema.index({ aadharCardNo: 1 });
 patientSchema.index({ phoneNo: 1 });
