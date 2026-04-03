@@ -39,7 +39,7 @@ connectDB();
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: process.env.EMAIL_PORT,
-  secure: process.env.EMAIL_PORT == 465,
+  secure: parseInt(process.env.EMAIL_PORT) === 465,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -148,7 +148,9 @@ const sendEmail = async ({ to, subject, html, from = process.env.EMAIL_FROM, cc 
     console.log(`Email sent to ${to}: ${info.messageId}`);
     return info;
   } catch (error) {
-    console.error(`Failed to send email to ${to}:`, error.message);
+    console.error("Full error object:", error);
+    console.error("Error code:", error.code);
+    console.error("Response:", error.response);
     throw error;
   }
 };
@@ -5844,6 +5846,21 @@ app.get('/health', (req, res) => {
         service: 'User Registration API',
         timestamp: new Date().toISOString(),
     });
+});
+
+app.get('/test-email', async (req, res) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,        // Use the authenticated email
+      to: process.env.EMAIL_USER,              // Use a real recipient for testing
+      subject: 'Test',
+      text: 'Render works'
+    });
+    res.send('Email sent');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
 });
 
 app.use((error, req, res, next) => {
