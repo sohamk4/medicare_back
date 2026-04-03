@@ -8,6 +8,7 @@ const PaymentService = require('./paymentService');
 const path = require('path');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const { deflateRawSync } = require('zlib');
 const { CHANNEL_ARGS_CONFIG_SELECTOR_KEY } = require('@grpc/grpc-js/build/src/resolver.js');
 const app = express();
@@ -36,15 +37,50 @@ mongoose.connection.on('disconnected', () => {
 
 connectDB();
 // Create transporter once
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: parseInt(process.env.EMAIL_PORT) === 465,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+// const transporter = nodemailer.createTransport({
+//   pool: true,
+//   host: 'smtp.gmail.com',
+//   port: 465,
+//   secure: true,
+//   auth: {
+//     type: 'OAuth2',
+//     user: process.env.EMAIL_USER,
+//     clientId: process.env.OAUTH_CLIENT_ID,
+//     clientSecret: process.env.OAUTH_CLIENT_SECRET,
+//     refreshToken: process.env.OAUTH_REFRESH_TOKEN,
+//   },
+//   connectionTimeout: 10000,
+//   greetingTimeout: 10000,
+//   socketTimeout: 15000,
+// });
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const sendEmail = async ({ to, subject, html, from = 'onboarding@resend.dev', cc = [] }) => {
+  if (!to || !subject || !html) {
+    throw new Error('Missing required email fields');
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: from,
+      to: to,
+      cc: cc,
+      subject: subject,
+      html: html,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    console.log(`Email sent to ${to}: ${data.id}`);
+    return data;
+  } catch (error) {
+    console.error(`Failed to send email:`, error);
+    throw error;
+  }
+};
+
 async function checkUsernameExists(username) {
     try {
       const patient = await Patient.findOne({ username });
@@ -130,30 +166,30 @@ async function checkRegistrationNExists(registrationNumber) {
   }
 }
 
-const sendEmail = async ({ to, subject, html, from = process.env.EMAIL_FROM, cc = [] }) => {
-  if (!to || !subject || !html) {
-    throw new Error('Missing required email fields: to, subject, html');
-  }
+// const sendEmail = async ({ to, subject, html, from = process.env.EMAIL_FROM, cc = [] }) => {
+//   if (!to || !subject || !html) {
+//     throw new Error('Missing required email fields: to, subject, html');
+//   }
 
-  const mailOptions = {
-    from,
-    to,
-    subject,
-    html,
-    cc,
-  };
+//   const mailOptions = {
+//     from,
+//     to,
+//     subject,
+//     html,
+//     cc,
+//   };
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent to ${to}: ${info.messageId}`);
-    return info;
-  } catch (error) {
-    console.error("Full error object:", error);
-    console.error("Error code:", error.code);
-    console.error("Response:", error.response);
-    throw error;
-  }
-};
+//   try {
+//     const info = await transporter.sendMail(mailOptions);
+//     console.log(`Email sent to ${to}: ${info.messageId}`);
+//     return info;
+//   } catch (error) {
+//     console.error("Full error object:", error);
+//     console.error("Error code:", error.code);
+//     console.error("Response:", error.response);
+//     throw error;
+//   }
+// };
 app.get('/check-username/:username', async (req, res) => {
   try {
       const { username } = req.params;
