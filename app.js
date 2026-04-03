@@ -5884,17 +5884,15 @@ app.get('/health', (req, res) => {
     });
 });
 
-app.get('/test-email', async (req, res) => {
+app.get('/test-resend', async (req, res) => {
   try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,        // Use the authenticated email
-      to: process.env.EMAIL_USER,              // Use a real recipient for testing
-      subject: 'Test',
-      text: 'Render works'
+    const result = await sendEmail({
+      to: 'soham56kadam@gmail.com',  // change to your real email
+      subject: 'Test from Render',
+      html: '<strong>Resend works on Render!</strong>'
     });
-    res.send('Email sent');
+    res.send(`Email sent: ${result.id}`);
   } catch (error) {
-    console.error(error);
     res.status(500).send(error.message);
   }
 });
