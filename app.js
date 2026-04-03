@@ -457,9 +457,6 @@ app.post('/register-patient', async (req, res) => {
     // Cleanup in case of early error (before response sent)
     if (error.message.includes('MongoDB') && req.body.username) {
       try {
-        const orgConfig = await registrationService.getOrganizationConfig('patient');
-        const wallet = await Wallets.newFileSystemWallet(orgConfig.walletPath);
-        await wallet.remove(req.body.username);
         console.log('🧹 Cleaned up wallet entry due to MongoDB failure');
       } catch (cleanupError) {
         console.error('Cleanup failed:', cleanupError.message);
@@ -2205,16 +2202,6 @@ app.put('/update-doctor-profile', async (req, res) => {
         message: 'Username is required'
       });
     }
-    console.log(username);
-    const exist = await service.ifDocExist(username);
-    console.log(`Doctor profile update requested for user: ${username}`);
-
-    if (!exist) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Access denied. Doctor role required.' 
-      });
-    }
 
     // Check if doctor exists
     const existingDoctor = await Doctor.findOne({ username });
@@ -3299,6 +3286,10 @@ app.put('/patient/:username/cancel', async (req, res) => {
         message: 'Appointment not found or does not belong to this patient'
       });
     }
+    const doctor = await Doctor.findById(new mongoose.Types.ObjectId(appointment.doctorId)).select('hospital_name');
+    if (!doctor) {
+      return res.status(403).json({ success: false, message: 'Doctor not found' });
+    }
 
     // Check if appointment can be cancelled
     const cancellableStatuses = ['scheduled', 'confirmed'];
@@ -3337,15 +3328,25 @@ app.put('/patient/:username/cancel', async (req, res) => {
 
     // Update blockchain status
     try {
-      await service.CancelAppointmentStatusOnBlockchain(
-        appointment._id,
-        patient.username
-      );
+      const fb = new FabricClient('./full-connection.json', path.join(__dirname, 'wallet', 'PatientOrg'), username);
+      await fb.initialize();
+      await fb.updateAppointmentStatus(appointmentId, 'cancelled', doctor.hospital_name);
+      console.log('✅ Appointment status updated on blockchain');
       console.log('✅ Appointment cancellation recorded on blockchain');
     } catch (blockchainError) {
       console.error('❌ Blockchain update failed:', blockchainError);
       // Continue even if blockchain update fails
     }
+    await sendEmail({
+      to: patient.email,
+      cc: doctor.email,
+      subject: 'Appointment Cancellation Successful',
+      html: `<p>Dear ${patient.name}, your appointment with Dr. ${doctor.name} is cancelled refund would be initiated!</p>
+             <p>Appointment ID: ${appointment._id.toString()}</p>
+             <p>Date: ${appointment.date.toLocaleDateString()}</p>
+             <p>Time: ${appointment.timeSlot}</p>
+             <p>Payment ID: ${appointment.paymentID}</p>`
+     });
 
     res.json({
       success: true,
@@ -3412,16 +3413,6 @@ app.post('/fill-patient-info', async (req, res) => {
         message: 'Username is required'
       });
     }
-    const exist=await service.ifPaitentExist(username);
-    console.log(`Paitent profile updated for user: ${username} ${exist}`);
-
-    if(!exist){
-      return res.status(403).json({ 
-          success: false, 
-          message: 'Access denied. Paitent role required.' 
-      });
-    }
-
     // Check if patient exists
     const patient = await Patient.findOne({ username:username });
     if (!patient) {
