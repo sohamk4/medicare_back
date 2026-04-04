@@ -43,15 +43,17 @@ connectDB();
 const transporter = nodemailer.createTransport({
   pool: true,
   host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
+  port: 587,               // instead of 465
+  secure: false,           // true for 465, false for 587
   auth: {
     type: 'OAuth2',
     user: process.env.EMAIL_USER,
     clientId: process.env.OAUTH_CLIENT_ID,
     clientSecret: process.env.OAUTH_CLIENT_SECRET,
     refreshToken: process.env.OAUTH_REFRESH_TOKEN,
-  }
+  },tls: {
+    rejectUnauthorized: false, // optional: only for debugging
+  },
 });
 
 // const resend = new Resend(process.env.RESEND_API_KEY);
