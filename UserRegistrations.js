@@ -14,9 +14,9 @@ class UserRegistrationClient {
      * @param {string} [walletBasePath='./wallet'] - Base directory for wallets.
      * @param {object} [extraOrgConfigs={}] - Additional organization configs to merge.
      */
-    constructor(orgName, walletBasePath = './wallet', extraOrgConfigs = {}) {
+    constructor(orgName, wallet = null, extraOrgConfigs = {}) {
         this.orgName = orgName;
-        this.walletBasePath = walletBasePath;
+        this.wallet = wallet || new MongoWallet();
         this.orgConfigs = {
             ...this._getBuiltInConfigs(),
             ...extraOrgConfigs
@@ -25,7 +25,6 @@ class UserRegistrationClient {
         if (!this.orgConfig) {
             throw new Error(`Unknown organization: ${orgName}. Use addOrgConfig() to add it.`);
         }
-        this.wallet = null;
         this.ca = null;
     }
 
@@ -92,23 +91,20 @@ class UserRegistrationClient {
      * @returns {Promise<void>}
      */
     async initialize() {
-        const walletPath = path.join(this.walletBasePath, this.orgName);
-        this.wallet = await Wallets.newFileSystemWallet(walletPath);
-
         this.ca = new FabricCAServices(this.orgConfig.caUrl, {
             trustedRoots: [],
             verify: false
         }, this.orgConfig.caName);
     }
-
     /**
      * Ensures that an admin identity exists in the wallet, enrolling it if necessary.
      * @returns {Promise<object>} The admin user context
      */
     async ensureAdmin() {
-        let adminIdentity = await this.wallet.get('admin');
+        const adminLabel = `admin-${this.orgName}`;
+        let adminIdentity = await this.wallet.get(adminLabel);
         if (!adminIdentity) {
-            console.log('Admin not found. Enrolling...');
+            console.log(`Admin for ${this.orgName} not found. Enrolling...`);
             try {
                 const adminEnrollment = await this.ca.enroll({
                     enrollmentID: this.orgConfig.adminId,
@@ -122,16 +118,15 @@ class UserRegistrationClient {
                     mspId: this.orgConfig.mspId,
                     type: 'X.509',
                 };
-                await this.wallet.put('admin', adminIdentity);
-                console.log('✓ Admin enrolled successfully');
+                await this.wallet.put(adminLabel, adminIdentity);
+                console.log(`✓ Admin for ${this.orgName} enrolled successfully`);
             } catch (err) {
-                throw new Error(`Admin enrollment failed: ${err.message}`);
+                throw new Error(`Admin enrollment failed for ${this.orgName}: ${err.message}`);
             }
         }
         const provider = this.wallet.getProviderRegistry().getProvider(adminIdentity.type);
-        return await provider.getUserContext(adminIdentity, 'admin');
+        return await provider.getUserContext(adminIdentity, adminLabel);
     }
-
     /**
      * Adds an affiliation to the CA. Requires admin privileges.
      * @param {string} affiliationPath - The affiliation path to add (e.g., 'citygeneral.doctors').
@@ -250,6 +245,7 @@ class UserRegistrationClient {
                 console.log('User already registered, proceeding with enrollment...');
                 secret = password || `${enrollmentID}pw`;
             } else {
+                console.log(err);
                 throw new Error(`Registration failed: ${err.message}`);
             }
         }
