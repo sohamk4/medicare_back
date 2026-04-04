@@ -11,6 +11,9 @@ const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 const { deflateRawSync } = require('zlib');
 const { CHANNEL_ARGS_CONFIG_SELECTOR_KEY } = require('@grpc/grpc-js/build/src/resolver.js');
+const MongoWallet = require('./MongoWallet');
+const wallet = new MongoWallet();
+
 const app = express();
 app.use(cors()); // This allows ALL origins and ALL methods by default
 
@@ -37,49 +40,46 @@ mongoose.connection.on('disconnected', () => {
 
 connectDB();
 // Create transporter once
-// const transporter = nodemailer.createTransport({
-//   pool: true,
-//   host: 'smtp.gmail.com',
-//   port: 465,
-//   secure: true,
-//   auth: {
-//     type: 'OAuth2',
-//     user: process.env.EMAIL_USER,
-//     clientId: process.env.OAUTH_CLIENT_ID,
-//     clientSecret: process.env.OAUTH_CLIENT_SECRET,
-//     refreshToken: process.env.OAUTH_REFRESH_TOKEN,
-//   },
-//   connectionTimeout: 10000,
-//   greetingTimeout: 10000,
-//   socketTimeout: 15000,
-// });
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-const sendEmail = async ({ to, subject, html, from = 'onboarding@resend.dev', cc = [] }) => {
-  if (!to || !subject || !html) {
-    throw new Error('Missing required email fields');
+const transporter = nodemailer.createTransport({
+  pool: true,
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  auth: {
+    type: 'OAuth2',
+    user: process.env.EMAIL_USER,
+    clientId: process.env.OAUTH_CLIENT_ID,
+    clientSecret: process.env.OAUTH_CLIENT_SECRET,
+    refreshToken: process.env.OAUTH_REFRESH_TOKEN,
   }
+});
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from: from,
-      to: to,
-      cc: cc,
-      subject: subject,
-      html: html,
-    });
+// const resend = new Resend(process.env.RESEND_API_KEY);
 
-    if (error) {
-      throw new Error(error.message);
-    }
-    console.log(`Email sent to ${to}: ${data.id}`);
-    return data;
-  } catch (error) {
-    console.error(`Failed to send email:`, error);
-    throw error;
-  }
-};
+// const sendEmail = async ({ to, subject, html, from = 'onboarding@resend.dev', cc = [] }) => {
+//   if (!to || !subject || !html) {
+//     throw new Error('Missing required email fields');
+//   }
+
+//   try {
+//     const { data, error } = await resend.emails.send({
+//       from: from,
+//       to: to,
+//       cc: cc,
+//       subject: subject,
+//       html: html,
+//     });
+
+//     if (error) {
+//       throw new Error(error.message);
+//     }
+//     console.log(`Email sent to ${to}: ${data.id}`);
+//     return data;
+//   } catch (error) {
+//     console.error(`Failed to send email:`, error);
+//     throw error;
+//   }
+// };
 
 async function checkUsernameExists(username) {
     try {
@@ -166,30 +166,30 @@ async function checkRegistrationNExists(registrationNumber) {
   }
 }
 
-// const sendEmail = async ({ to, subject, html, from = process.env.EMAIL_FROM, cc = [] }) => {
-//   if (!to || !subject || !html) {
-//     throw new Error('Missing required email fields: to, subject, html');
-//   }
+const sendEmail = async ({ to, subject, html, from = process.env.EMAIL_FROM, cc = [] }) => {
+  if (!to || !subject || !html) {
+    throw new Error('Missing required email fields: to, subject, html');
+  }
 
-//   const mailOptions = {
-//     from,
-//     to,
-//     subject,
-//     html,
-//     cc,
-//   };
+  const mailOptions = {
+    from,
+    to,
+    subject,
+    html,
+    cc,
+  };
 
-//   try {
-//     const info = await transporter.sendMail(mailOptions);
-//     console.log(`Email sent to ${to}: ${info.messageId}`);
-//     return info;
-//   } catch (error) {
-//     console.error("Full error object:", error);
-//     console.error("Error code:", error.code);
-//     console.error("Response:", error.response);
-//     throw error;
-//   }
-// };
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`Email sent to ${to}: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    console.error("Full error object:", error);
+    console.error("Error code:", error.code);
+    console.error("Response:", error.response);
+    throw error;
+  }
+};
 app.get('/check-username/:username', async (req, res) => {
   try {
       const { username } = req.params;
@@ -409,19 +409,15 @@ app.post('/register-patient', async (req, res) => {
     // --- Background tasks (non‑blocking) ---
     setImmediate(async () => {
       try {
-        // 1. Register and enroll user on Fabric CA
-        const client = new UserRegistrationClient('PatientOrg', './wallet');
+        const client = new UserRegistrationClient('PatientOrg', wallet);
         await client.initialize();
         await client.ensureAdmin();
+        await client.registerAndEnrollUser(username, 'patient',  name);
 
         await client.registerAndEnrollUser(username, 'patient', name);
         console.log(`✅ CA registration complete for ${username}`);
 
-        const fb = new FabricClient(
-          './full-connection.json',
-          path.join(__dirname, 'wallet', 'PatientOrg'),
-          username
-        );
+        const fb = new FabricClient('./full-connection.json', wallet, username);
         await fb.initialize();
         const blockchainResult = await fb.registerPatient(patient._id.toString(), name, username);
         const returnedId = blockchainResult.toString();
@@ -529,13 +525,13 @@ app.post('/register-hospital', async (req, res) => {
         });
         setImmediate(async()=>{
             console.time("hp");
-            const client = new UserRegistrationClient(hospital.name, './wallet');
+            const client = new UserRegistrationClient(hospital.name, wallet);
             await client.initialize();
             await client.ensureAdmin();
             await client.registerAndEnrollUser(hospital.email, 'hospital', hospital.name);
             const fb = new FabricClient(
               './full-connection.json',
-              path.join(__dirname, 'wallet',hospital.name),
+              wallet,
               hospital.email
             );
             await fb.initialize();
@@ -546,13 +542,13 @@ app.post('/register-hospital', async (req, res) => {
               hospital.name
             );
             console.timeEnd("hp");
-            const client2 = new UserRegistrationClient('PlatformOrg', './wallet');
+            const client2 = new UserRegistrationClient('PlatformOrg', wallet);
             await client2.initialize();
             await client2.ensureAdmin();
-            await client2.registerAndEnrollUser('work', 'client', 'prachi');
+            await client2.registerAndEnrollUser('wdork', 'client', 'prachi');
             const fb2 = new FabricClient(
               './full-connection.json',
-              path.join(__dirname, 'wallet','PlatformOrg'),
+              wallet,
               'work'
             );
             await fb2.initialize();
@@ -587,14 +583,14 @@ app.post('/register-blockchain-hospital', async (req, res) => {
     console.log("lova");
     const hospital= await Hospital.findById(hid);
     console.log(hospital);
-    const client = new UserRegistrationClient(hospital.name, './wallet');
+    const client = new UserRegistrationClient(hospital.name, wallet);
     await client.initialize();
     await client.ensureAdmin();
     await client.registerAndEnrollUser(hospital.email, 'hospital', hospital.name);
     console.log("lovda");
     const fb = new FabricClient(
       './full-connection.json',
-      path.join(__dirname, 'wallet',hospital.name),
+      wallet,
       hospital.email
     );
     await fb.initialize();
@@ -720,7 +716,7 @@ app.post('/register-doctor', async (req, res) => {
         setImmediate(async () => {
             try {
                 // 1. Register with Fabric CA (as a doctor)
-                const client = new UserRegistrationClient(orgName, './wallet');
+                const client = new UserRegistrationClient(orgName, wallet);
                 await client.initialize();
                 await client.ensureAdmin();
 
@@ -731,17 +727,17 @@ app.post('/register-doctor', async (req, res) => {
                 // 2. Invoke chaincode to register doctor on the ledger
                 const fb = new FabricClient(
                     './full-connection.json',
-                    walletPath,
+                    wallet,
                     username
                 );
                 await fb.initialize();
                 console.time("Register");
                 const blockchainResult = await fb.registerDoctor(
-                    doctor._id.toString(),
-                    name,
-                    username,
-                    hospitalIdRef || '',
-                    orgName
+                  doctor._id.toString(),
+                  name,
+                  username,
+                  hospitalIdRef || '',
+                  orgName
                 );
                 console.timeEnd("Register");
                 const returnedId = blockchainResult.toString();
@@ -793,13 +789,13 @@ app.post('/register-doctor', async (req, res) => {
 app.post('/set-collection', async (req, res) => {
   try {
     const{msp,collectionName}=req.body;
-    const client = new UserRegistrationClient('PlatformOrg', './wallet');
+    const client = new UserRegistrationClient('PlatformOrg', wallet);
     await client.initialize();
     await client.ensureAdmin();
     await client.registerAndEnrollUser('work', 'client', 'prachi');
     const fb = new FabricClient(
       './full-connection.json',
-      path.join(__dirname, 'wallet','PlatformOrg'),
+      wallet,
       'work'
     );
     await fb.initialize();
@@ -870,7 +866,7 @@ app.post('/login', async (req, res) => {
 
     // Handle each user type with specific logic
     if (userType === 'patient') {
-      const patientClient = new UserRegistrationClient('PatientOrg', './wallet');
+      const patientClient = new UserRegistrationClient('PatientOrg',wallet);
       await patientClient.initialize();
       const exists = await patientClient.userExists(user.username);
       if (!exists) {
@@ -900,9 +896,9 @@ app.post('/login', async (req, res) => {
 
       if (user.hospital_id) {
         hospital = await Hospital.findById(new mongoose.Types.ObjectId(user.hospital_id));
-        doctorClient = new UserRegistrationClient(hospital.name, './wallet');
+        doctorClient = new UserRegistrationClient(hospital.name, wallet);
       } else {
-        doctorClient = new UserRegistrationClient('ProviderOrg', './wallet');
+        doctorClient = new UserRegistrationClient('ProviderOrg', wallet);
       }
 
       await doctorClient.initialize();
@@ -934,7 +930,7 @@ app.post('/login', async (req, res) => {
     }
 
     if (userType === 'hospital') {
-      const hospitalClient = new UserRegistrationClient(user.name, './wallet');
+      const hospitalClient = new UserRegistrationClient(user.name, wallet);
       await hospitalClient.initialize();
       const exists = await hospitalClient.userExists(user.email);
       if (!exists) {
@@ -992,9 +988,9 @@ app.post('/fill-doc-info',async(req,res)=>{
         let doctor=null;
         console.log(user)
         if (user.hospital_id!=''){
-          doctor = new UserRegistrationClient(user.hospital_name, './wallet');
+          doctor = new UserRegistrationClient(user.hospital_name, wallet);
         }else{
-          doctor = new UserRegistrationClient('ProviderOrg', './wallet');
+          doctor = new UserRegistrationClient('ProviderOrg', wallet);
         }
         await doctor.initialize();
         const exist = await doctor.userExists(user.username);    
@@ -1854,7 +1850,7 @@ app.get('/doctors/:username/appointment-test/upcoming', async (req, res) => {
       // 2. Invoke chaincode to register doctor on the ledger
       const fb = new FabricClient(
           './full-connection.json',
-          path.join(__dirname, 'wallet',orgName),
+          wallet,
           username
       );
       await fb.initialize();
@@ -3328,7 +3324,7 @@ app.put('/patient/:username/cancel', async (req, res) => {
 
     // Update blockchain status
     try {
-      const fb = new FabricClient('./full-connection.json', path.join(__dirname, 'wallet', 'PatientOrg'), username);
+      const fb = new FabricClient('./full-connection.json', wallet, username);
       await fb.initialize();
       await fb.updateAppointmentStatus(appointmentId, 'cancelled', doctor.hospital_name);
       console.log('✅ Appointment status updated on blockchain');
@@ -3500,7 +3496,7 @@ app.post('/fill-patient-info', async (req, res) => {
     }
     const fb = new FabricClient(
       './full-connection.json',
-      path.join(__dirname, 'wallet','PatientOrg'),
+      wallet,
       username
     );
     await fb.initialize();
@@ -4044,7 +4040,7 @@ app.post('/payment-webhook', express.raw({ type: 'application/json' }), async (r
                 }
                 const fb = new FabricClient(
                     './full-connection.json',
-                    path.join(__dirname, 'wallet', 'PatientOrg'),
+                    wallet,
                     patient.username
                 );
                 await fb.initialize();
@@ -4314,7 +4310,7 @@ app.post('/book-quick-appointment', async (req, res) => {
     const orgName = doctor.hospital_name && doctor.hospital_name !== '' ? doctor.hospital_name : 'ProviderOrg';
     const fb = new FabricClient(
       './full-connection.json',
-      path.join(__dirname, 'wallet', orgName),
+      wallet,
       doctor.username
     );
     await fb.initialize();
@@ -4507,7 +4503,7 @@ app.post('/quick-payment-webhook', express.raw({ type: 'application/json' }), as
                     const orgName = doctor.hospital_name && doctor.hospital_name !== '' ? doctor.hospital_name : 'ProviderOrg';
                     const fb = new FabricClient(
                         './full-connection.json',
-                        path.join(__dirname, 'wallet', orgName),
+                        wallet,
                         doctor.username
                     );
                     await fb.initialize();
@@ -4603,7 +4599,7 @@ app.put('/appointments/:appointmentId/status', async (req, res) => {
     if (['completed', 'cancelled', 'no-show'].includes(status)) {
       const orgName = doctor.hospital_name && doctor.hospital_name !== '' ? doctor.hospital_name : 'ProviderOrg';
       try {
-        const fb = new FabricClient('./full-connection.json', path.join(__dirname, 'wallet', orgName), doctor.username);
+        const fb = new FabricClient('./full-connection.json', wallet, doctor.username);
         await fb.initialize();
         await fb.updateAppointmentStatus(appointmentId, status, doctor.hospital_name);
         console.log('✅ Appointment status updated on blockchain');
@@ -4732,7 +4728,7 @@ app.put('/appointments/:appointmentId/consultation', async (req, res) => {
     // Asynchronous blockchain update
     setImmediate(async () => {
       try {
-        const fb = new FabricClient('./full-connection.json', path.join(__dirname, 'wallet', orgName), doctor.username);
+        const fb = new FabricClient('./full-connection.json', wallet, doctor.username);
         await fb.initialize();
 
         // Prepare data for chaincode
@@ -5331,7 +5327,7 @@ app.put('/appointments/:appointmentId/guest-consultation', async (req, res) => {
 
         const fb = new FabricClient(
           './full-connection.json',
-          path.join(__dirname, 'wallet', orgName),
+          wallet,
           doctorUsername
         );
         await fb.initialize();
@@ -5459,7 +5455,7 @@ app.get('/doctors/patients/:patientUsername/medical-history', async (req, res) =
     console.log(doctor)
     const fb = new FabricClient(
       './full-connection.json',
-      path.join(__dirname, 'wallet', orgName),
+      wallet,
       doctorUsername
     );
     await fb.initialize();
@@ -5504,7 +5500,7 @@ app.get('/doctors/patients/:patientUsername/medical-history', async (req, res) =
 
     const fb2 = new FabricClient(
       './full-connection.json',
-      path.join(__dirname, 'wallet','PlatformOrg'),
+      wallet,
       'work'
     );
     await fb2.initialize();

@@ -8,34 +8,20 @@ class FabricClient {
      * @param {string} walletPath - Path to the wallet directory.
      * @param {string} identityName - Name of the identity to use.
      */
-    constructor(ccpPath, walletPath, identityName) {
-        this.ccpPath = ccpPath;
-        this.walletPath = walletPath;
-        this.identityName = identityName;
-        this.ccp = null;
-        this.wallet = null;
+    constructor(ccpPath, wallet, identityName) {
+      this.ccpPath = ccpPath;
+      this.wallet = wallet;          // now a MongoWallet instance
+      this.identityName = identityName;
+      this.ccp = null;
     }
-
-    /**
-     * Loads the connection profile and wallet. Must be called before any other method.
-     */
+  
     async initialize() {
-        this.ccp = require(this.ccpPath);
-        this.wallet = await Wallets.newFileSystemWallet(this.walletPath);
-        console.log('init');
-        // console.log(this.wallet);
-        // Object.entries(this.ccp.channels['discovery-channel'].peers).forEach(([name, config]) => {
-        //     console.log(`  ${name}: endorsingPeer = ${config.endorsingPeer}`);
-        // });     
+      this.ccp = require(this.ccpPath);
+      // No need to load wallet – it's already passed in
     }
-
-    /**
-     * Checks if the configured identity exists in the wallet.
-     * @returns {Promise<boolean>} True if identity exists.
-     */
+  
     async checkIdentity() {
-        const identity = await this.wallet.get(this.identityName);
-        return !!identity;
+      return !!(await this.wallet.get(this.identityName));
     }
 
     /**

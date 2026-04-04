@@ -8,6 +8,18 @@ const addressSchema = new mongoose.Schema({
   country: { type: String, default: 'India' }
 });
 
+const identitySchema = new mongoose.Schema({
+  label: { type: String, required: true, unique: true },       // e.g., username
+  userType: { type: String, enum: ['patient', 'doctor', 'hospital'], required: true },
+  mspId: { type: String, required: true },                     // e.g., "PatientOrgMSP"
+  certificate: { type: String, required: true },               // PEM
+  privateKey: { type: String, required: true },                // PEM (encrypted in production)
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+identitySchema.index({ label: 1 });
+
 const patientSchema = new mongoose.Schema({
   // Basic Information
   username: { 
@@ -674,8 +686,9 @@ appointmentSchema.index({ patientId: 1, status: 1 });
 appointmentSchema.index({ doctorId: 1, status: 1 });
 
 module.exports = {
-    Patient: mongoose.model('Patient', patientSchema),
-    Doctor: mongoose.model('Doctor', doctorSchema),
-    Appointment: mongoose.model('Appointment', appointmentSchema),
-    Hospital: mongoose.model('Hospital',hospitalSchema)
+  Patient: mongoose.model('Patient', patientSchema),
+  Doctor: mongoose.model('Doctor', doctorSchema),
+  Appointment: mongoose.model('Appointment', appointmentSchema),
+  Hospital: mongoose.model('Hospital', hospitalSchema),
+  Identity: mongoose.model('Identity', identitySchema)   // ✅ fixed
 };
