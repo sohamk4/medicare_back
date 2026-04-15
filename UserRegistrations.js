@@ -208,7 +208,6 @@ class UserRegistrationClient {
     async registerAndEnrollUser(enrollmentID, userType, displayName = enrollmentID, exaffiliation=null,password = null,) {
         if (await this.userExists(enrollmentID)) {
             const identity = await this.wallet.get(enrollmentID);
-            console.log(`User ${enrollmentID} already exists in wallet`);
             return identity;
         }
 

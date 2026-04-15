@@ -5864,12 +5864,37 @@ async function checkDoctorAvailability(doctorId, date, timeSlot) {
   return { available: true };
 }
 
-app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
-        service: 'User Registration API',
-        timestamp: new Date().toISOString(),
-    });
+app.get('/health', async (req, res) => {
+  let message = '';
+  let errorDetails = null;
+
+  try {
+    const client2 = new UserRegistrationClient('PlatformOrg', wallet);
+    await client2.initialize();
+    await client2.ensureAdmin();
+    await client2.registerAndEnrollUser('ck', 'client', 'prachi');
+
+    const fb2 = new FabricClient(
+      './full-connection.json',
+      wallet,
+      'ck'
+    );
+    await fb2.initialize();
+    const exists = await fb2.patientExists("patient1");
+
+    message = `Success - doctorExists result: ${exists}`;
+  } catch (err) {
+    errorDetails = err.message;
+    message = `Error in blockchain operations: ${err.message}`;
+  }
+
+  res.json({
+    status: 'OK',
+    service: 'User Registration API',
+    timestamp: new Date().toISOString(),
+    message: message,
+    error: errorDetails || null
+  });
 });
 
 app.get('/test-resend', async (req, res) => {
