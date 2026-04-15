@@ -547,11 +547,11 @@ app.post('/register-hospital', async (req, res) => {
             const client2 = new UserRegistrationClient('PlatformOrg', wallet);
             await client2.initialize();
             await client2.ensureAdmin();
-            await client2.registerAndEnrollUser('wdork', 'client', 'prachi');
+            await client2.registerAndEnrollUser('ck', 'client', 'prachi');
             const fb2 = new FabricClient(
               './full-connection.json',
               wallet,
-              'work'
+              'ck'
             );
             await fb2.initialize();
             console.time("Register");
