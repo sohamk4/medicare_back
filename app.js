@@ -51,9 +51,7 @@ const transporter = nodemailer.createTransport({
     clientId: process.env.OAUTH_CLIENT_ID,
     clientSecret: process.env.OAUTH_CLIENT_SECRET,
     refreshToken: process.env.OAUTH_REFRESH_TOKEN,
-  },tls: {
-    rejectUnauthorized: false, // optional: only for debugging
-  },
+  }
 });
 
 // const resend = new Resend(process.env.RESEND_API_KEY);
