@@ -5502,7 +5502,7 @@ app.get('/doctors/patients/:patientUsername/medical-history', async (req, res) =
     const fb2 = new FabricClient(
       './full-connection.json',
       wallet,
-      'work'
+      'ck'
     );
     await fb2.initialize();
 
